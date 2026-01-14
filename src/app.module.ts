@@ -6,25 +6,27 @@ import { UsersModule } from './users/users.module';
 import { StudentsModule } from './students/students.module';
 import { ProfessorsModule } from './professors/professors.module';
 import { CoursesModule } from './courses/courses.module';
+import { DatabaseModule } from './database/database.config';
 
 @Module({
   imports: [
-    // Load environment variables
+    
     ConfigModule.forRoot({
-      isGlobal: true, // Makes ConfigService available everywhere
-      envFilePath: '.env',
+      isGlobal: true, 
+      //envFilePath: '/.env',
     }),
+    DatabaseModule,
 
-    // MongoDB connection
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
-      }),
-    }),
+   
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (configService: ConfigService) => ({
+    //     uri: configService.get<string>('mongodb://localhost:27017/university'),
+    //   }),
+    // }),
 
-    // Feature modules
+   
     AuthModule,
     UsersModule,
     StudentsModule,

@@ -26,9 +26,8 @@ export class ProfessorsRepository {
     return this.professorModel.find().populate('userId', 'name email').exec();
   }
 
-  async assignCourse(professorId: string, courseId: string): Promise<Professor> {
-    return this.professorModel
-      .findByIdAndUpdate(
+  async assignCourse(professorId: string, courseId: string): Promise<Professor | null> {
+    return this.professorModel.findByIdAndUpdate(
         professorId,
         { $addToSet: { teachingCourses: courseId } },
         { new: true },

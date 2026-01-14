@@ -16,6 +16,10 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.create(registerDto);
 
+    if (!user) {
+      throw new Error('Failed to create user');
+    }
+    
     // Generate JWT token
     const token = this.generateToken(user);
 

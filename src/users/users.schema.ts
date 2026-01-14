@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { Role } from '../../common/enums/role.enum';
+import { Role } from '../common/role.enum';
 
 @Schema({ timestamps: true }) 
 export class User extends Document {
@@ -22,5 +22,3 @@ export class User extends Document {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Create index for faster email lookups
-UserSchema.index({ email: 1 });

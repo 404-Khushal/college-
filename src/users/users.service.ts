@@ -1,16 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './schemas/user.schema';
+import { User } from './users.schema';
 import * as bcrypt from 'bcrypt';
-import { Role } from '../common/enums/role.enum';
+import { Role } from '../common/role.enum';
 
 // Service contains business logic
 @Injectable()
 export class UsersService {
   constructor(private usersRepository: UsersRepository) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<User | null> {
     // Hash password before saving
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     

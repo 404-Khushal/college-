@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Course } from './schemas/course.schema';
+import { Course } from './courses.schema';
 import { CreateCourseDto } from './dto/create-course.dto';
 
 @Injectable()
@@ -34,7 +34,7 @@ export class CoursesRepository {
     return this.courseModel.find({ professor: professorId }).exec();
   }
 
-  async addStudent(courseId: string, studentId: string): Promise<Course> {
+  async addStudent(courseId: string, studentId: string): Promise<Course | null> {
     return this.courseModel
       .findByIdAndUpdate(
         courseId,
@@ -44,13 +44,13 @@ export class CoursesRepository {
       .exec();
   }
 
-  async update(id: string, updateData: any): Promise<Course> {
+  async update(id: string, updateData: any): Promise<Course | null > {
     return this.courseModel
       .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
   }
 
-  async delete(id: string): Promise<Course> {
+  async delete(id: string): Promise<Course | null> {
     return this.courseModel.findByIdAndDelete(id).exec();
   }
 }

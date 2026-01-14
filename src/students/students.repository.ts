@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Student } from './schemas/student.schema';
-import { CreateStudentDto } from './dto/create-student.dto';
+import { Student } from './schemas/students.schema';
+import { CreateStudentDto } from './dto/student-create.dto';
 
 @Injectable()
 export class StudentsRepository {
@@ -10,7 +10,7 @@ export class StudentsRepository {
     @InjectModel(Student.name) private studentModel: Model<Student>,
   ) {}
 
-  async create(createStudentDto: CreateStudentDto): Promise<Student> {
+  async create(createStudentDto: CreateStudentDto): Promise<Student | null> {
     const student = new this.studentModel(createStudentDto);
     return student.save();
   }
@@ -23,7 +23,7 @@ export class StudentsRepository {
     return this.studentModel.find().populate('userId', 'name email').exec();
   }
 
-  async enrollInCourse(studentId: string, courseId: string): Promise<Student> {
+  async enrollInCourse(studentId: string, courseId: string): Promise<Student | null> {
     return this.studentModel
       .findByIdAndUpdate(
         studentId,
