@@ -1,43 +1,76 @@
-import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-constructor(
-private usersService:UsersService,
-private jwtService:JwtService
-){}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-async signup(data:any){
-const hashed = await bcrypt.hash(data.password,10);
+  // Register new user
+  async register(registerDto: RegisterDto) {
+    const user = await this.usersService.create(registerDto);
 
-return this.usersService.create({
-  email:data.email,
-  password:hashed,
-  role:data.role
-});
+    // Generate JWT token
+    const token = this.generateToken(user);
 
+    return {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      access_token: token,
+    };
+  }
 
-}
+  // Login existing user
+  async login(loginDto: LoginDto) {
+    // Find user with password
+    const user = await this.usersService.findByEmail(loginDto.email);
 
-async login(data:any){
-const user = await this.usersService.findByEmail(data.email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
-const match = await bcrypt.compare(data.password,user.password);
+    // Check password
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
 
-if(!match){
-  return {message:'Invalid credentials'};
-}
-const token = this.jwtService.sign({
-  id:user._id,
-  role:user.role
-});
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
-return {token};
+    // Generate JWT token
+    const token = this.generateToken(user);
 
+    return {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      access_token: token,
+    };
+  }
 
-}
+  // Generate JWT token
+  private generateToken(user: any): string {
+    const payload = { 
+      sub: user._id,  // 'sub' is standard JWT field for user ID
+      email: user.email,
+      role: user.role,
+    };
+
+    return this.jwtService.sign(payload);
+  }
 }
