@@ -1,41 +1,52 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { CoursesRepository } from './courses.repository';
+import { CreateCourseDto } from './dto/create-course.dto';
 
 @Injectable()
 export class CoursesService {
-constructor(@InjectModel('Course') private model:Model<any>){}
+  constructor(private coursesRepository: CoursesRepository) {}
 
-create(course:any){
-return this.model.create(course);
-}
+  async create(createCourseDto: CreateCourseDto) {
+    return this.coursesRepository.create(createCourseDto);
+  }
 
-findAll(){
-return this.model.find();
-}
+  async findAll() {
+    return this.coursesRepository.findAll();
+  }
 
-findByStudent(id: string) {
-    return this.model.find({ students: id });
+  async findById(id: string) {
+    const course = await this.coursesRepository.findById(id);
+    if (!course) {
+      throw new NotFoundException('Course not found');
     }
-    
-findByProfessor(id: string) {
-    return this.model.find({ professorId: id });
+    return course;
+  }
+
+  async findByProfessor(professorId: string) {
+    return this.coursesRepository.findByProfessor(professorId);
+  }
+
+  async enrollStudent(courseId: string, studentId: string) {
+    const course = await this.findById(courseId);
+
+    // Check if course is full
+    if (course.enrolledStudents.length >= course.maxStudents) {
+      throw new BadRequestException('Course is full');
     }
 
-assignProfessor(courseId: string, professorId: string) {
-        return this.model.findByIdAndUpdate(
-        courseId,
-        { professorId },
-        { new: true }
-        );
-        }
+    // Check if student already enrolled
+    if (course.enrolledStudents.includes(studentId as any)) {
+      throw new BadRequestException('Student already enrolled in this course');
+    }
 
-enrollStudent(courseId: string, studentId: string) {
-            return this.model.findByIdAndUpdate(
-            courseId,
-            { $push: { students: studentId } },
-            { new: true }
-            );
-            }
+    return this.coursesRepository.addStudent(courseId, studentId);
+  }
+
+  async update(id: string, updateData: any) {
+    return this.coursesRepository.update(id, updateData);
+  }
+
+  async delete(id: string) {
+    return this.coursesRepository.delete(id);
+  }
 }
-
