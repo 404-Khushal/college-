@@ -1,20 +1,44 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { UsersRepository } from './users.repository';
+import { CreateUserDto } from './dto/create-user.dto';
+import { User } from './schemas/user.schema';
+import * as bcrypt from 'bcrypt';
+import { Role } from '../common/enums/role.enum';
 
+// Service contains business logic
 @Injectable()
 export class UsersService {
-constructor(@InjectModel('User') private userModel: Model<any>) {}
+  constructor(private usersRepository: UsersRepository) {}
 
-create(user:any){
-return this.userModel.create(user);
-}
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    // Hash password before saving
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+    
+    const userWithHashedPassword = {
+      ...createUserDto,
+      password: hashedPassword,
+    };
 
-findByEmail(email:string){
-return this.userModel.findOne({email});
-}
+    return this.usersRepository.create(userWithHashedPassword);
+  }
 
-findAll(){
-return this.userModel.find();
-}
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findByEmail(email);
+  }
+
+  async findById(id: string): Promise<User> {
+    const user = await this.usersRepository.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.findAll();
+  }
+
+  async findByRole(role: Role): Promise<User[]> {
+    return this.usersRepository.findByRole(role);
+  }
 }
