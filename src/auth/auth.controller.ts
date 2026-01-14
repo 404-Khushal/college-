@@ -1,17 +1,33 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
-constructor(private service:AuthService){}
+  constructor(private authService: AuthService) {}
 
-@Post('signup')
-signup(@Body() body:any){
-return this.service.signup(body);
-}
+  // POST /auth/register
+  @Post('register')
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
+  }
 
-@Post('login')
-login(@Body() body:any){
-return this.service.login(body);
-}
+  // POST /auth/login
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
+
+  // GET /auth/profile - Protected route
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@CurrentUser() user: any) {
+    return {
+      message: 'This is your profile',
+      user,
+    };
+  }
 }
